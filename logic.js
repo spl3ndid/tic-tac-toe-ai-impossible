@@ -14,31 +14,48 @@ const winPatterns = [
 ];
 
 function checkWinner(board) {
-    for (const pattern of winPatterns) {
-        const [a, b, c] = pattern;
+    for (let i = 0; i < winPatterns.length; i++) {
+        const [a, b, c] = winPatterns[i];
         if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return board[a];
+            return { winner: board[a], pattern: winPatterns[i] };
         }
     }
-    return board.includes('') ? null : 'Tie';
+    return board.includes('') ? null : { winner: 'Tie', pattern: null };
 }
 
-function updateStatus(winner) {
+function highlightWinningCells(pattern) {
+    if (!pattern) return;
+    
+    pattern.forEach(index => {
+        cells[index].classList.add('winning-cell');
+    });
+}
+
+function updateStatus(result) {
+    if (!result) {
+        status.textContent = `${currentPlayer}'s turn`;
+        return;
+    }
+    
+    const { winner, pattern } = result;
+    
     if (winner === 'Tie') {
         status.textContent = "It's a tie!";
-    } else if (winner) {
-        status.textContent = `${winner} wins!`;
     } else {
-        status.textContent = `${currentPlayer}'s turn`;
+        status.textContent = `${winner} wins!`;
+        highlightWinningCells(pattern);
     }
 }
 
 function minimax(board, depth, isMaximizing) {
-    const winner = checkWinner(board);
-    if (winner === 'O') return 10 - depth;
-    if (winner === 'X') return depth - 10;
-    if (winner === 'Tie') return 0;
-
+    const result = checkWinner(board);
+    
+    if (result) {
+        if (result.winner === 'O') return 10 - depth;
+        if (result.winner === 'X') return depth - 10;
+        if (result.winner === 'Tie') return 0;
+    }
+    
     if (isMaximizing) {
         let bestScore = -Infinity;
         for (let i = 0; i < 9; i++) {
@@ -81,24 +98,25 @@ function aiMove() {
     gameBoard[bestMove] = 'O';
     cells[bestMove].textContent = 'O';
     currentPlayer = 'X';
-    const winner = checkWinner(gameBoard);
-    updateStatus(winner);
-    if (winner) gameActive = false;
+    const result = checkWinner(gameBoard);
+    updateStatus(result);
+    if (result) gameActive = false;
 }
 
 function handleCellClick(e) {
     const cellIndex = e.target.getAttribute('data-index');
     if (gameBoard[cellIndex] !== '' || !gameActive || currentPlayer !== 'X') return;
-
+    
     gameBoard[cellIndex] = 'X';
     e.target.textContent = 'X';
-    const winner = checkWinner(gameBoard);
-    if (winner) {
-        updateStatus(winner);
+    
+    const result = checkWinner(gameBoard);
+    if (result) {
+        updateStatus(result);
         gameActive = false;
         return;
     }
-
+    
     currentPlayer = 'O';
     updateStatus(null);
     setTimeout(aiMove, 500);
@@ -108,11 +126,15 @@ function resetGame() {
     gameBoard = ['', '', '', '', '', '', '', '', ''];
     gameActive = true;
     currentPlayer = 'X';
-    cells.forEach(cell => cell.textContent = '');
+    
+    cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('winning-cell');
+    });
+    
     updateStatus(null);
 }
 
 board.addEventListener('click', handleCellClick);
 resetButton.addEventListener('click', resetGame);
-
 updateStatus(null);
