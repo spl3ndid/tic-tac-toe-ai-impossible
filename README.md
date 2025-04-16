@@ -2,6 +2,8 @@
 
 This project is a web-based implementation of the classic Tic Tac Toe game, where a human player competes against an AI opponent. The AI uses the minimax algorithm to make optimal moves, providing a challenging gameplay experience.
 
+👉 **[Play the game here](https://spl3ndid.github.io/tic-tac-toe-ai-impossible/)**
+
 ## Features
 
 - Interactive web-based Tic Tac Toe game
